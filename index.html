@@ -4,57 +4,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Quizzy - Test your knowledge with interactive quizzes.">
+    <meta name="description" content="Quizzy - Test your knowledge with an interactive JavaScript quiz.">
+    <meta name="theme-color" content="#f5f6fc">
     <title>Quizzy | JavaScript Quiz App</title>
     <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
 </head>
 <body>
+
     <header class="navbar">
         <a href="#" class="logo">Quizzy<span>.</span></a>
-        <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">🌙</button>
+        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle theme">
+            🌙
+        </button>
     </header>
 
     <main class="app-container">
+
         <section class="welcome-screen" id="welcomeScreen">
             <span class="eyebrow">THE KNOWLEDGE CHALLENGE</span>
             <h1>Test Your <span>Knowledge.</span></h1>
-            <p>Challenge yourself with 10 questions and see how much you know.</p>
-            <button class="primary-btn" id="startBtn">Start Quiz <span>→</span></button>
-            <p class="quiz-info">10 Questions <span>•</span> Multiple Choice <span>•</span> Instant Results</p>
+            <p>
+                Challenge yourself with 10 questions and test
+                your knowledge of web development.
+            </p>
+
+            <button class="primary-btn" id="startBtn" type="button">
+                Start Quiz →
+            </button>
+
+            <p class="quiz-info">
+                10 Questions <span>•</span>
+                Multiple Choice <span>•</span>
+                Instant Results
+            </p>
         </section>
 
-        <section class="quiz-container hidden" id="quizScreen">
+        <section class="quiz-container hidden" id="quizScreen" aria-labelledby="questionText">
+
             <div class="quiz-header">
                 <span id="questionCounter">Question 1 of 10</span>
                 <span id="scoreDisplay">Score: 0</span>
             </div>
 
-            <div class="progress-track">
+            <div
+                class="progress-track"
+                id="progressTrack"
+                role="progressbar"
+                aria-label="Quiz progress"
+                aria-valuemin="0"
+                aria-valuemax="10"
+                aria-valuenow="1"
+            >
                 <div class="progress-bar" id="progressBar"></div>
             </div>
 
-            <h2 id="questionText"></h2>
+            <h2 id="questionText">Question will appear here.</h2>
 
             <div class="options-container" id="optionsContainer"></div>
 
             <div class="feedback" id="feedback" aria-live="polite"></div>
 
             <div class="quiz-navigation">
-                <button class="secondary-btn" id="previousBtn" disabled>Previous</button>
-                <button class="primary-btn" id="nextBtn">Next Question →</button>
+                <button class="secondary-btn" id="previousBtn" type="button" disabled>
+                    Previous
+                </button>
+
+                <button class="primary-btn" id="nextBtn" type="button">
+                    Next Question →
+                </button>
             </div>
+
         </section>
 
-        <section class="result-container hidden" id="resultScreen">
-            <h1>Quiz Completed!</h1>
-            <p>Your results will appear here.</p>
+        <section class="result-container hidden" id="resultScreen" aria-labelledby="resultHeading">
+
+            <div class="result-icon">🏆</div>
+            <span class="eyebrow">QUIZ COMPLETED</span>
+            <h1 id="resultHeading">Your Results</h1>
+
+            <div class="score-circle">
+                <strong id="finalScore">0/10</strong>
+                <span id="percentage">0%</span>
+            </div>
+
+            <h2 id="resultMessage">Good Effort!</h2>
+            <p id="resultDescription"></p>
+
+            <div class="best-score">
+                Best Score: <strong id="bestScore">0/10</strong>
+            </div>
+
+            <div class="result-actions">
+                <button class="primary-btn" id="restartBtn" type="button">
+                    Try Again ↻
+                </button>
+
+                <button
+                    class="secondary-btn"
+                    id="reviewBtn"
+                    type="button"
+                    aria-expanded="false"
+                    aria-controls="reviewContainer"
+                >
+                    Review Answers
+                </button>
+            </div>
+
+            <div class="review-container hidden" id="reviewContainer">
+                <h2>Answer Review</h2>
+                <div id="reviewList"></div>
+            </div>
+
         </section>
+
     </main>
 
     <footer>
         <p>Made with focus and curiosity. © 2026 Quizzy</p>
     </footer>
 
-    <script src="script.js"></script>
 </body>
 </html>

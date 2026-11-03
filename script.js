@@ -61,28 +61,49 @@ const questions = [
         answer: 1
     },
     {
-        question: "Which HTML tag is used to connect an external JavaScript file?",
+        question: "Which HTML tag connects an external JavaScript file?",
         options: ["<javascript>", "<link>", "<script>", "<code>"],
         answer: 2
     }
 ];
 
-const startBtn = document.getElementById("startBtn");
-const welcomeScreen = document.getElementById("welcomeScreen");
-const quizScreen = document.getElementById("quizScreen");
-const resultScreen = document.getElementById("resultScreen");
-const themeToggle = document.getElementById("themeToggle");
-const questionCounter = document.getElementById("questionCounter");
-const scoreDisplay = document.getElementById("scoreDisplay");
-const progressBar = document.getElementById("progressBar");
-const questionText = document.getElementById("questionText");
-const optionsContainer = document.getElementById("optionsContainer");
-const feedback = document.getElementById("feedback");
-const previousBtn = document.getElementById("previousBtn");
-const nextBtn = document.getElementById("nextBtn");
+const elements = {
+    startBtn: document.getElementById("startBtn"),
+    welcomeScreen: document.getElementById("welcomeScreen"),
+    quizScreen: document.getElementById("quizScreen"),
+    resultScreen: document.getElementById("resultScreen"),
+    themeToggle: document.getElementById("themeToggle"),
+    questionCounter: document.getElementById("questionCounter"),
+    scoreDisplay: document.getElementById("scoreDisplay"),
+    progressBar: document.getElementById("progressBar"),
+    progressTrack: document.getElementById("progressTrack"),
+    questionText: document.getElementById("questionText"),
+    optionsContainer: document.getElementById("optionsContainer"),
+    feedback: document.getElementById("feedback"),
+    previousBtn: document.getElementById("previousBtn"),
+    nextBtn: document.getElementById("nextBtn"),
+    finalScore: document.getElementById("finalScore"),
+    percentage: document.getElementById("percentage"),
+    resultMessage: document.getElementById("resultMessage"),
+    resultDescription: document.getElementById("resultDescription"),
+    bestScore: document.getElementById("bestScore"),
+    restartBtn: document.getElementById("restartBtn"),
+    reviewBtn: document.getElementById("reviewBtn"),
+    reviewContainer: document.getElementById("reviewContainer"),
+    reviewList: document.getElementById("reviewList")
+};
 
 let currentQuestion = 0;
 let userAnswers = new Array(questions.length).fill(null);
+
+function getStoredNumber(key) {
+    try {
+        const value = Number(localStorage.getItem(key));
+        return Number.isFinite(value) && value >= 0 ? value : 0;
+    } catch {
+        return 0;
+    }
+}
 
 function calculateScore() {
     return userAnswers.reduce((score, answer, index) => {
@@ -94,16 +115,21 @@ function renderQuestion() {
     const question = questions[currentQuestion];
     const selectedAnswer = userAnswers[currentQuestion];
 
-    questionCounter.textContent =
+    elements.questionCounter.textContent =
         `Question ${currentQuestion + 1} of ${questions.length}`;
 
-    scoreDisplay.textContent = `Score: ${calculateScore()}`;
-    progressBar.style.width =
-        `${((currentQuestion + 1) / questions.length) * 100}%`;
+    elements.scoreDisplay.textContent = `Score: ${calculateScore()}`;
 
-    questionText.textContent = question.question;
-    optionsContainer.innerHTML = "";
-    feedback.textContent = "";
+    const progress = currentQuestion + 1;
+
+    elements.progressBar.style.width =
+        `${(progress / questions.length) * 100}%`;
+
+    elements.progressTrack.setAttribute("aria-valuenow", progress);
+
+    elements.questionText.textContent = question.question;
+    elements.optionsContainer.innerHTML = "";
+    elements.feedback.textContent = "";
 
     question.options.forEach((option, index) => {
         const button = document.createElement("button");
@@ -120,29 +146,32 @@ function renderQuestion() {
         }
 
         button.addEventListener("click", () => selectAnswer(index));
-        optionsContainer.appendChild(button);
+
+        elements.optionsContainer.appendChild(button);
     });
 
     if (selectedAnswer !== null) {
         const isCorrect = selectedAnswer === question.answer;
 
-        feedback.textContent = isCorrect
+        elements.feedback.textContent = isCorrect
             ? "Correct answer!"
             : `Incorrect. Correct answer: ${question.options[question.answer]}`;
 
-        feedback.style.color = isCorrect ? "#16a34a" : "#dc2626";
+        elements.feedback.style.color = isCorrect ? "#16a34a" : "#dc2626";
     }
 
-    previousBtn.disabled = currentQuestion === 0;
+    elements.previousBtn.disabled = currentQuestion === 0;
 
-    nextBtn.textContent =
+    elements.nextBtn.textContent =
         currentQuestion === questions.length - 1
             ? "Finish Quiz"
             : "Next Question →";
 }
 
 function selectAnswer(selectedIndex) {
-    if (userAnswers[currentQuestion] !== null) return;
+    if (userAnswers[currentQuestion] !== null) {
+        return;
+    }
 
     userAnswers[currentQuestion] = selectedIndex;
     renderQuestion();
@@ -152,31 +181,139 @@ function startQuiz() {
     currentQuestion = 0;
     userAnswers = new Array(questions.length).fill(null);
 
-    welcomeScreen.classList.add("hidden");
-    resultScreen.classList.add("hidden");
-    quizScreen.classList.remove("hidden");
+    elements.welcomeScreen.classList.add("hidden");
+    elements.resultScreen.classList.add("hidden");
+    elements.quizScreen.classList.remove("hidden");
+
+    elements.reviewContainer.classList.add("hidden");
+    elements.reviewBtn.textContent = "Review Answers";
+    elements.reviewBtn.setAttribute("aria-expanded", "false");
 
     renderQuestion();
 }
 
 function showResults() {
-    quizScreen.classList.add("hidden");
-    resultScreen.classList.remove("hidden");
+    const score = calculateScore();
+    const percentage = Math.round((score / questions.length) * 100);
+
+    const savedBestScore = getStoredNumber("quizzyBestScore");
+    const bestScore = Math.max(score, savedBestScore);
+
+    try {
+        localStorage.setItem("quizzyBestScore", String(bestScore));
+    } catch {
+        // The current result can still be displayed if storage is unavailable.
+    }
+
+    elements.quizScreen.classList.add("hidden");
+    elements.resultScreen.classList.remove("hidden");
+
+    elements.finalScore.textContent = `${score}/${questions.length}`;
+    elements.percentage.textContent = `${percentage}%`;
+    elements.bestScore.textContent = `${bestScore}/${questions.length}`;
+
+    if (percentage === 100) {
+        elements.resultMessage.textContent = "Perfect Score!";
+        elements.resultDescription.textContent =
+            "Outstanding! You answered every question correctly.";
+    } else if (percentage >= 70) {
+        elements.resultMessage.textContent = "Great Work!";
+        elements.resultDescription.textContent =
+            "Excellent performance. Keep learning and improving.";
+    } else if (percentage >= 40) {
+        elements.resultMessage.textContent = "Good Effort!";
+        elements.resultDescription.textContent =
+            "You're making progress. Keep practicing.";
+    } else {
+        elements.resultMessage.textContent = "Keep Practicing!";
+        elements.resultDescription.textContent =
+            "Review your answers and try again. You can improve.";
+    }
+
+    renderReview();
 }
 
-startBtn.addEventListener("click", startQuiz);
+function renderReview() {
+    elements.reviewList.innerHTML = "";
 
-previousBtn.addEventListener("click", () => {
+    questions.forEach((question, index) => {
+        const selectedAnswer = userAnswers[index];
+        const isCorrect = selectedAnswer === question.answer;
+
+        const item = document.createElement("article");
+        item.className = "review-item";
+
+        const heading = document.createElement("h3");
+        heading.textContent = `${index + 1}. ${question.question}`;
+
+        const yourAnswer = document.createElement("p");
+
+        yourAnswer.textContent = `Your answer: ${
+            selectedAnswer === null
+                ? "Not answered"
+                : question.options[selectedAnswer]
+        }`;
+
+        const correctAnswer = document.createElement("p");
+
+        correctAnswer.textContent =
+            `Correct answer: ${question.options[question.answer]}`;
+
+        const status = document.createElement("span");
+
+        status.className = isCorrect ? "correct-status" : "wrong-status";
+        status.textContent = isCorrect ? "Correct" : "Incorrect";
+
+        item.append(heading, yourAnswer, correctAnswer, status);
+        elements.reviewList.appendChild(item);
+    });
+}
+
+function loadTheme() {
+    let savedTheme = "light";
+
+    try {
+        savedTheme = localStorage.getItem("quizzyTheme") || "light";
+    } catch {
+        savedTheme = "light";
+    }
+
+    document.body.classList.toggle("dark", savedTheme === "dark");
+
+    elements.themeToggle.textContent =
+        savedTheme === "dark" ? "☀️" : "🌙";
+}
+
+function toggleTheme() {
+    document.body.classList.toggle("dark");
+
+    const theme = document.body.classList.contains("dark")
+        ? "dark"
+        : "light";
+
+    try {
+        localStorage.setItem("quizzyTheme", theme);
+    } catch {
+        // Theme still changes for the current session.
+    }
+
+    elements.themeToggle.textContent =
+        theme === "dark" ? "☀️" : "🌙";
+}
+
+elements.startBtn.addEventListener("click", startQuiz);
+
+elements.previousBtn.addEventListener("click", () => {
     if (currentQuestion > 0) {
         currentQuestion--;
         renderQuestion();
     }
 });
 
-nextBtn.addEventListener("click", () => {
+elements.nextBtn.addEventListener("click", () => {
     if (userAnswers[currentQuestion] === null) {
-        feedback.textContent = "Please select an answer first.";
-        feedback.style.color = "#dc2626";
+        elements.feedback.textContent = "Please select an answer first.";
+        elements.feedback.style.color = "#dc2626";
         return;
     }
 
@@ -188,10 +325,20 @@ nextBtn.addEventListener("click", () => {
     }
 });
 
-themeToggle.addEventListener("click", () => {
-    document.body.classList.toggle("dark");
+elements.restartBtn.addEventListener("click", startQuiz);
 
-    themeToggle.textContent = document.body.classList.contains("dark")
-        ? "☀️"
-        : "🌙";
+elements.reviewBtn.addEventListener("click", () => {
+    const isHidden = elements.reviewContainer.classList.toggle("hidden");
+
+    elements.reviewBtn.textContent =
+        isHidden ? "Review Answers" : "Hide Review";
+
+    elements.reviewBtn.setAttribute("aria-expanded", String(!isHidden));
 });
+
+elements.themeToggle.addEventListener("click", toggleTheme);
+
+loadTheme();
+
+elements.bestScore.textContent =
+    `${getStoredNumber("quizzyBestScore")}/${questions.length}`;
